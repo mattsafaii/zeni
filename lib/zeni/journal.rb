@@ -23,6 +23,19 @@ module Zeni
       File.open(@path, "a") { |f| f.write(text) }
     end
 
+    # Appends an entry, then runs hledger check. On failure, truncates the file
+    # back to its prior size so a malformed entry never persists.
+    def append_validated(entry_text)
+      original_size = File.exist?(@path) ? File.size(@path) : 0
+      append(entry_text)
+      begin
+        validate!
+      rescue Error
+        File.truncate(@path, original_size)
+        raise
+      end
+    end
+
     # Removes the last appended transaction block (everything after the last blank-line boundary)
     def undo
       return false unless File.exist?(@path)

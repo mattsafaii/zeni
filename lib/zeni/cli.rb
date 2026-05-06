@@ -55,8 +55,7 @@ module Zeni
         return
       end
 
-      journal.validate!
-      journal.append(entry)
+      journal.append_validated(entry)
 
       if (vendor_account = data.dig("postings", 0, "account"))
         config.save_vendor(description, vendor_account)
