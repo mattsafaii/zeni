@@ -8,7 +8,7 @@ module Zeni
       true
     end
 
-    KNOWN_COMMANDS = %w[log undo switch help tree].freeze
+    KNOWN_COMMANDS = %w[log undo help].freeze
 
     def self.start(args = ARGV, config = {})
       if args.first && !args.first.start_with?("-") && !KNOWN_COMMANDS.include?(args.first)
@@ -79,20 +79,6 @@ module Zeni
       else
         puts "Nothing to undo."
       end
-    rescue Error => e
-      $stderr.puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc "switch CONTEXT", "Change default context for this session"
-    def switch(context)
-      config = load_config
-      unless config.journals.key?(context)
-        $stderr.puts "Unknown context '#{context}'. Available: #{config.journals.keys.join(', ')}"
-        exit 1
-      end
-      puts "Switched to context: #{context}"
-      puts "(Note: context switches are per-session via -c flag or config default)"
     rescue Error => e
       $stderr.puts "Error: #{e.message}"
       exit 1

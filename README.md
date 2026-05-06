@@ -98,12 +98,6 @@ zeni --yes "description"
 zeni -c business "Digital Ocean invoice 42 cc"
 ```
 
-### Switch default context
-
-```
-zeni switch business
-```
-
 ### Undo last entry
 
 ```
