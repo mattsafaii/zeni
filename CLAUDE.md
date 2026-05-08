@@ -30,7 +30,7 @@ zeni is a Ruby CLI gem. The entry point is `exe/zeni`, which calls `Zeni::CLI.st
    - `CLI#snap_accounts` is a fallback that prefix-matches any account that slipped through to the nearest valid one
    - `Formatter` renders the JSON response as an hledger entry string
    - `Prompt` shows the entry and asks for confirmation (skipped with `-y`)
-   - `Journal#validate!` runs `hledger check`, then `Journal#append` writes to the file
+   - `Journal#append_validated` appends the entry, runs `hledger check`, and truncates the file back to its prior size if validation fails
    - `Config#save_vendor` updates `~/.config/zeni/vendors.toml` with the learned mapping
 
 **Key design decisions:**
@@ -43,3 +43,16 @@ zeni is a Ruby CLI gem. The entry point is `exe/zeni`, which calls `Zeni::CLI.st
 ## Config
 
 `~/.config/zeni/config.toml` must exist with at least one journal and a default context. See README for full structure.
+
+## Dev Log
+
+### 2026-05-06
+
+**Planning**
+- Reviewed the whole gem (lib/zeni, README, gemspec) and turned the findings into a 13-item Basecamp todolist (`#9865610278` in project `47171516`). Real bugs first, then dead code, then nice-to-haves like vendor key collisions and missing tests.
+
+**Bug Fixes**
+- The old flow ran `hledger check` *before* `journal.append`, which meant the new entry was never validated and any unrelated pre-existing journal error blocked every future append. Added `Journal#append_validated` (journal.rb:25-37): capture file size, append, run check, truncate back on failure. Verified rollback works by feeding it an unbalanced entry — file returns to its original byte length and the error surfaces cleanly.
+
+**Cleanup**
+- Dropped `zeni tree` and `zeni switch`. `tree` was listed in `KNOWN_COMMANDS` but had no implementation — running it errored. `switch` validated the context name and printed "Switched to..." but never persisted anything; the in-code comment even admitted the switch was per-session only. Context resolution still works via cwd auto-detection, the `-c` per-call flag, and `defaults.context` in config.toml — `switch` was redundant with all three. Removed the README section that referenced it.
